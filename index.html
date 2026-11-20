@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1f3a68">
+<title>元素記号タッチ</title>
+<style>
+  :root{
+    --navy:#1f3a68; --bg:#f3f5f9; --card:#ffffff; --text:#1d2433; --sub:#5b6577;
+    --ok:#2e9d5b; --ng:#d93b3b; --done:#e3e7ee; --doneText:#9aa3b2; --accent:#f2a516;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; height:100%;}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+    touch-action:manipulation; user-select:none; -webkit-user-select:none;
+    overscroll-behavior:none;
+  }
+  .app{max-width:480px; margin:0 auto; min-height:100%; display:flex; flex-direction:column;
+       padding:calc(env(safe-area-inset-top) + 12px) 16px calc(env(safe-area-inset-bottom) + 16px);}
+  header{background:var(--navy); color:#fff; border-radius:14px; padding:10px 14px; text-align:center;}
+  header h1{margin:0; font-size:20px; letter-spacing:.08em;}
+
+  /* 画面切り替え */
+  .screen{display:none; flex:1; flex-direction:column;}
+  .screen.on{display:flex;}
+
+  /* スタート画面・結果画面 */
+  .center{flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:18px; text-align:center;}
+  .rule{background:var(--card); border-radius:14px; padding:16px 18px; font-size:16px; line-height:1.8; text-align:left; box-shadow:0 1px 3px rgba(0,0,0,.08);}
+  .rule b{color:var(--navy);}
+  .best{font-size:16px; color:var(--sub);}
+  .best strong{font-size:22px; color:var(--text);}
+  .btn{border:none; border-radius:14px; background:var(--accent); color:#fff; font-size:22px; font-weight:700;
+       padding:16px 48px; box-shadow:0 4px 0 #c2830d; cursor:pointer;}
+  .btn:active{transform:translateY(3px); box-shadow:0 1px 0 #c2830d;}
+  .btn.sub{background:#8a94a6; box-shadow:0 4px 0 #687285; font-size:18px; padding:12px 32px;}
+
+  /* ゲーム画面 */
+  .status{display:flex; gap:10px; margin:12px 0;}
+  .box{flex:1; background:var(--card); border-radius:12px; padding:8px 4px; text-align:center; box-shadow:0 1px 3px rgba(0,0,0,.08);}
+  .box .label{font-size:12px; color:var(--sub);}
+  .box .val{font-size:26px; font-weight:700; font-variant-numeric:tabular-nums;}
+  .box.next .val{color:var(--navy);}
+  .pen{color:var(--ng); font-size:14px; font-weight:700; height:18px; text-align:center;}
+  .progress{height:8px; background:var(--done); border-radius:4px; overflow:hidden; margin-bottom:12px;}
+  .progress div{height:100%; width:0; background:var(--ok); transition:width .15s;}
+
+  .grid{flex:1; display:grid; grid-template-columns:repeat(4,1fr); grid-template-rows:repeat(5,1fr); gap:10px; min-height:0;}
+  .cell{border:none; border-radius:14px; background:var(--card); color:var(--text);
+        font-size:clamp(28px, 9vw, 40px); font-weight:700; font-family:"Helvetica Neue",Arial,sans-serif;
+        box-shadow:0 3px 0 #c9d0dc; position:relative; padding:0; min-height:64px; cursor:pointer;}
+  .cell:active{transform:translateY(2px); box-shadow:0 1px 0 #c9d0dc;}
+  .cell .no{position:absolute; top:4px; left:7px; font-size:12px; font-weight:400; color:var(--doneText); display:none;}
+  .cell.done{background:var(--done); color:var(--doneText); box-shadow:none; transform:none;}
+  .cell.done .no{display:block;}
+  .cell.flash{animation:flash .3s;}
+  .cell.miss{animation:shake .35s; background:#fde3e3; color:var(--ng);}
+  @keyframes flash{0%{background:#c8f0d6; color:var(--ok);} 100%{}}
+  @keyframes shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-7px);}40%{transform:translateX(7px);}60%{transform:translateX(-5px);}80%{transform:translateX(5px);}}
+
+  .count{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(31,58,104,.85);
+         color:#fff; font-size:120px; font-weight:800; z-index:10;}
+  .count.on{display:flex;}
+
+  .result-time{font-size:56px; font-weight:800; color:var(--navy); font-variant-numeric:tabular-nums; line-height:1;}
+  .result-detail{font-size:16px; color:var(--sub); line-height:1.7;}
+  .newbest{color:var(--accent); font-size:22px; font-weight:800; animation:pop .6s;}
+  @keyframes pop{0%{transform:scale(.4);opacity:0;}70%{transform:scale(1.15);}100%{transform:scale(1);opacity:1;}}
+  .answer{display:grid; grid-template-columns:repeat(4,1fr); gap:4px; font-size:13px; background:var(--card);
+          border-radius:12px; padding:10px; width:100%; box-shadow:0 1px 3px rgba(0,0,0,.08);}
+  .answer span{text-align:center; white-space:nowrap;}
+  .answer small{color:var(--sub);}
+</style>
+</head>
+<body>
+<div class="app">
+  <header><h1>元素記号タッチ</h1></header>
+
+  <!-- スタート画面 -->
+  <section class="screen on" id="start">
+    <div class="center">
+      <div class="rule">
+        <b>原子番号1〜20</b>の元素記号が<br>バラバラに並んでいます。<br>
+        <b>H → He → Li → …</b> の順に<br>できるだけ速くタッチしよう！<br>
+        まちがえると <b style="color:var(--ng)">＋1秒</b> のペナルティ。
+      </div>
+      <div class="best" id="bestStart"></div>
+      <button class="btn" id="startBtn">スタート</button>
+    </div>
+  </section>
+
+  <!-- ゲーム画面 -->
+  <section class="screen" id="game">
+    <div class="status">
+      <div class="box next"><div class="label">次は原子番号</div><div class="val" id="next">1</div></div>
+      <div class="box"><div class="label">タイム</div><div class="val" id="time">0.00</div></div>
+      <div class="box"><div class="label">ミス</div><div class="val" id="miss">0</div></div>
+    </div>
+    <div class="progress"><div id="bar"></div></div>
+    <div class="grid" id="grid"></div>
+    <div class="pen" id="pen"></div>
+  </section>
+
+  <!-- 結果画面 -->
+  <section class="screen" id="result">
+    <div class="center">
+      <div style="font-size:24px; font-weight:700;">クリア！</div>
+      <div class="result-time" id="rTime"></div>
+      <div class="result-detail" id="rDetail"></div>
+      <div class="newbest" id="rNew" hidden>★ 自己ベスト更新！ ★</div>
+      <div class="best" id="bestResult"></div>
+      <div class="answer" id="answer"></div>
+      <button class="btn" id="retryBtn">もう一度</button>
+      <button class="btn sub" id="topBtn">タイトルへ</button>
+    </div>
+  </section>
+</div>
+
+<div class="count" id="count">3</div>
+
+<script>
+const EL = [
+  ["H","水素"],["He","ヘリウム"],["Li","リチウム"],["Be","ベリリウム"],["B","ホウ素"],
+  ["C","炭素"],["N","窒素"],["O","酸素"],["F","フッ素"],["Ne","ネオン"],
+  ["Na","ナトリウム"],["Mg","マグネシウム"],["Al","アルミニウム"],["Si","ケイ素"],["P","リン"],
+  ["S","硫黄"],["Cl","塩素"],["Ar","アルゴン"],["K","カリウム"],["Ca","カルシウム"]
+];
+const PENALTY = 1.0; // 秒
+const KEY = "genso-touch-best";
+
+const $ = id => document.getElementById(id);
+let next, misses, t0, timer, playing = false;
+
+function getBest(){ try{ const v = parseFloat(localStorage.getItem(KEY)); return isNaN(v) ? null : v; }catch(e){ return null; } }
+function setBest(v){ try{ localStorage.setItem(KEY, String(v)); }catch(e){} }
+function fmt(s){ return s.toFixed(2); }
+function showBest(el){
+  const b = getBest();
+  el.innerHTML = b == null ? "自己ベスト：まだ記録なし" : "自己ベスト：<strong>" + fmt(b) + "</strong> 秒";
+}
+function show(id){
+  document.querySelectorAll(".screen").forEach(s => s.classList.toggle("on", s.id === id));
+}
+function shuffle(a){
+  for(let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+function elapsed(){ return (performance.now() - t0) / 1000 + misses * PENALTY; }
+
+function buildGrid(){
+  const g = $("grid");
+  g.innerHTML = "";
+  shuffle(EL.map((e, i) => i + 1)).forEach(z => {
+    const b = document.createElement("button");
+    b.className = "cell";
+    b.innerHTML = '<span class="no">' + z + '</span>' + EL[z - 1][0];
+    b.addEventListener("pointerdown", ev => { ev.preventDefault(); tap(b, z); });
+    g.appendChild(b);
+  });
+}
+
+function tap(b, z){
+  if(!playing || b.classList.contains("done")) return;
+  if(z === next){
+    b.classList.add("done", "flash");
+    setTimeout(() => b.classList.remove("flash"), 300);
+    $("bar").style.width = (next / 20 * 100) + "%";
+    next++;
+    if(next > 20){ finish(); return; }
+    $("next").textContent = next;
+  }else{
+    misses++;
+    $("miss").textContent = misses;
+    b.classList.remove("miss"); void b.offsetWidth; b.classList.add("miss");
+    setTimeout(() => b.classList.remove("miss"), 350);
+    $("pen").textContent = "＋1秒！";
+    clearTimeout(tap.pt); tap.pt = setTimeout(() => $("pen").textContent = "", 700);
+    if(navigator.vibrate) navigator.vibrate(80);
+  }
+}
+
+function startGame(){
+  next = 1; misses = 0;
+  $("next").textContent = "1"; $("miss").textContent = "0"; $("time").textContent = "0.00";
+  $("bar").style.width = "0"; $("pen").textContent = "";
+  buildGrid();
+  show("game");
+  // カウントダウン
+  const c = $("count"); let n = 3;
+  c.textContent = n; c.classList.add("on");
+  const iv = setInterval(() => {
+    n--;
+    if(n > 0){ c.textContent = n; return; }
+    clearInterval(iv);
+    c.classList.remove("on");
+    t0 = performance.now(); playing = true;
+    timer = setInterval(() => $("time").textContent = fmt(elapsed()), 50);
+  }, 700);
+}
+
+function finish(){
+  playing = false;
+  clearInterval(timer);
+  const t = elapsed();
+  $("time").textContent = fmt(t);
+  const old = getBest();
+  const isNew = old == null || t < old;
+  if(isNew) setBest(t);
+  $("rTime").innerHTML = fmt(t) + '<span style="font-size:24px"> 秒</span>';
+  $("rDetail").textContent = "ミス " + misses + " 回（ペナルティ ＋" + (misses * PENALTY).toFixed(0) + " 秒）";
+  $("rNew").hidden = !isNew;
+  showBest($("bestResult"));
+  $("answer").innerHTML = EL.map((e, i) => "<span><small>" + (i + 1) + "</small><br><b>" + e[0] + "</b><br><small>" + e[1] + "</small></span>").join("");
+  setTimeout(() => show("result"), 400);
+}
+
+$("startBtn").addEventListener("click", startGame);
+$("retryBtn").addEventListener("click", startGame);
+$("topBtn").addEventListener("click", () => { showBest($("bestStart")); show("start"); });
+showBest($("bestStart"));
+</script>
+</body>
+</html>
