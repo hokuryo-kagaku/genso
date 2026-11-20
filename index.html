@@ -3,123 +3,184 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#1f3a68">
+<meta name="theme-color" content="#0d1424">
 <title>元素記号タッチ</title>
 <style>
   :root{
-    --navy:#1f3a68; --bg:#f3f5f9; --card:#ffffff; --text:#1d2433; --sub:#5b6577;
-    --ok:#2e9d5b; --ng:#d93b3b; --done:#e3e7ee; --doneText:#9aa3b2; --accent:#f2a516;
+    --bg1:#0d1424; --bg2:#1b2a4a; --text:#ffffff; --sub:#8fa0c0;
+    --tile1:#3dd6f5; --tile2:#2a8cf0; --tileShadow:#1a5fb0;
+    --ok:#3ee08a; --ng:#ff4d5e; --accent:#ffc83d; --accentShadow:#c9921a;
+    --panel:rgba(255,255,255,.07);
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0; height:100%;}
   body{
-    background:var(--bg); color:var(--text);
+    background:radial-gradient(ellipse at top, var(--bg2), var(--bg1) 70%) fixed, var(--bg1);
+    color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
-    touch-action:manipulation; user-select:none; -webkit-user-select:none;
-    overscroll-behavior:none;
+    touch-action:manipulation; user-select:none; -webkit-user-select:none; overscroll-behavior:none;
   }
-  .app{max-width:480px; margin:0 auto; min-height:100%; display:flex; flex-direction:column;
-       padding:calc(env(safe-area-inset-top) + 12px) 16px calc(env(safe-area-inset-bottom) + 16px);}
-  header{background:var(--navy); color:#fff; border-radius:14px; padding:10px 14px; text-align:center;}
-  header h1{margin:0; font-size:20px; letter-spacing:.08em;}
-
-  /* 画面切り替え */
+  .app{max-width:440px; margin:0 auto; min-height:100%; display:flex; flex-direction:column;
+       padding:calc(env(safe-area-inset-top) + 10px) 16px calc(env(safe-area-inset-bottom) + 14px);}
   .screen{display:none; flex:1; flex-direction:column;}
   .screen.on{display:flex;}
+  .num{font-family:"SF Mono","Menlo","Consolas",monospace; font-variant-numeric:tabular-nums;}
 
-  /* スタート画面・結果画面 */
-  .center{flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:18px; text-align:center;}
-  .rule{background:var(--card); border-radius:14px; padding:16px 18px; font-size:16px; line-height:1.8; text-align:left; box-shadow:0 1px 3px rgba(0,0,0,.08);}
-  .rule b{color:var(--navy);}
-  .best{font-size:16px; color:var(--sub);}
-  .best strong{font-size:22px; color:var(--text);}
-  .btn{border:none; border-radius:14px; background:var(--accent); color:#fff; font-size:22px; font-weight:700;
-       padding:16px 48px; box-shadow:0 4px 0 #c2830d; cursor:pointer;}
-  .btn:active{transform:translateY(3px); box-shadow:0 1px 0 #c2830d;}
-  .btn.sub{background:#8a94a6; box-shadow:0 4px 0 #687285; font-size:18px; padding:12px 32px;}
+  /* ===== タイトル ===== */
+  .title-wrap{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:26px; text-align:center;}
+  .logo{display:grid; grid-template-columns:repeat(3,52px); gap:6px;}
+  .logo span{aspect-ratio:1; border-radius:10px; display:flex; align-items:center; justify-content:center;
+             font-weight:800; font-size:22px; background:linear-gradient(160deg,var(--tile1),var(--tile2));
+             box-shadow:0 4px 0 var(--tileShadow); font-family:"Helvetica Neue",Arial,sans-serif;}
+  .logo span.off{background:rgba(255,255,255,.08); box-shadow:none; color:transparent;}
+  h1{margin:0; font-size:34px; letter-spacing:.12em; font-weight:800;}
+  .catch{margin:-14px 0 0; color:var(--sub); font-size:14px; letter-spacing:.2em;}
+  .rule{background:var(--panel); border-radius:16px; padding:14px 18px; font-size:15px; line-height:1.8;}
+  .rule b{color:var(--tile1);}
+  .rule .ng{color:var(--ng);}
+  .best-lbl{color:var(--sub); font-size:13px; letter-spacing:.25em;}
+  .best-val{font-size:34px; font-weight:700; margin-top:2px;}
+  .start{width:150px; height:150px; border-radius:50%; border:none; cursor:pointer;
+         background:radial-gradient(circle at 35% 30%, #ffe08a, var(--accent) 60%);
+         box-shadow:0 7px 0 var(--accentShadow), 0 0 40px rgba(255,200,61,.35);
+         color:#3a2600; font-size:26px; font-weight:800; letter-spacing:.1em;}
+  .start:active{transform:translateY(5px); box-shadow:0 2px 0 var(--accentShadow);}
 
-  /* ゲーム画面 */
-  .status{display:flex; gap:10px; margin:12px 0;}
-  .box{flex:1; background:var(--card); border-radius:12px; padding:8px 4px; text-align:center; box-shadow:0 1px 3px rgba(0,0,0,.08);}
-  .box .label{font-size:12px; color:var(--sub);}
-  .box .val{font-size:26px; font-weight:700; font-variant-numeric:tabular-nums;}
-  .box.next .val{color:var(--navy);}
-  .pen{color:var(--ng); font-size:14px; font-weight:700; height:18px; text-align:center;}
-  .progress{height:8px; background:var(--done); border-radius:4px; overflow:hidden; margin-bottom:12px;}
-  .progress div{height:100%; width:0; background:var(--ok); transition:width .15s;}
+  /* ===== ゲーム ===== */
+  .topbar{display:flex; align-items:center; justify-content:space-between; height:40px;}
+  .quit{border:none; background:var(--panel); color:var(--sub); border-radius:20px; padding:8px 14px;
+        font-size:14px; font-weight:700; cursor:pointer;}
+  .quit:active{background:rgba(255,255,255,.15);}
+  .miss-chip{font-size:14px; color:var(--sub);}
+  .miss-chip b{color:var(--text); font-size:18px;}
+  .timer{text-align:center; font-size:64px; font-weight:700; line-height:1.1; margin:6px 0 2px; letter-spacing:.02em;}
+  .timer small{font-size:24px; color:var(--sub); margin-left:4px;}
+  .next{text-align:center; margin-bottom:12px; height:26px;}
+  .next span{display:inline-block; background:var(--panel); border-radius:14px; padding:3px 16px; font-size:15px; color:var(--sub);}
+  .next b{color:var(--accent); font-size:19px; margin-left:4px;}
+  .pen{position:fixed; left:50%; top:30%; transform:translateX(-50%); color:var(--ng); font-size:34px; font-weight:800;
+       pointer-events:none; opacity:0; text-shadow:0 2px 8px rgba(0,0,0,.6);}
+  .pen.show{animation:penUp .7s ease-out;}
+  @keyframes penUp{0%{opacity:1; transform:translate(-50%,10px);}100%{opacity:0; transform:translate(-50%,-30px);}}
 
-  .grid{flex:1; display:grid; grid-template-columns:repeat(4,1fr); grid-template-rows:repeat(5,1fr); gap:10px; min-height:0;}
-  .cell{border:none; border-radius:14px; background:var(--card); color:var(--text);
-        font-size:clamp(28px, 9vw, 40px); font-weight:700; font-family:"Helvetica Neue",Arial,sans-serif;
-        box-shadow:0 3px 0 #c9d0dc; position:relative; padding:0; min-height:64px; cursor:pointer;}
-  .cell:active{transform:translateY(2px); box-shadow:0 1px 0 #c9d0dc;}
-  .cell .no{position:absolute; top:4px; left:7px; font-size:12px; font-weight:400; color:var(--doneText); display:none;}
-  .cell.done{background:var(--done); color:var(--doneText); box-shadow:none; transform:none;}
-  .cell.done .no{display:block;}
-  .cell.flash{animation:flash .3s;}
-  .cell.miss{animation:shake .35s; background:#fde3e3; color:var(--ng);}
-  @keyframes flash{0%{background:#c8f0d6; color:var(--ok);} 100%{}}
-  @keyframes shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-7px);}40%{transform:translateX(7px);}60%{transform:translateX(-5px);}80%{transform:translateX(5px);}}
+  .grid{display:grid; grid-template-columns:repeat(4,1fr); gap:9px; margin:auto 0;}
+  .cell{aspect-ratio:1; border:none; border-radius:14px; padding:0; cursor:pointer; position:relative;
+        background:linear-gradient(160deg,var(--tile1),var(--tile2)); color:#fff;
+        box-shadow:0 5px 0 var(--tileShadow);
+        font-size:clamp(28px, 9vw, 38px); font-weight:800; font-family:"Helvetica Neue",Arial,sans-serif;
+        text-shadow:0 2px 0 rgba(0,0,0,.18); transition:transform .08s;}
+  .cell:active{transform:translateY(3px); box-shadow:0 2px 0 var(--tileShadow);}
+  .cell.done{background:rgba(255,255,255,.05); box-shadow:none; color:rgba(255,255,255,.18); text-shadow:none;
+             transform:scale(.9); transition:transform .15s, background .15s; pointer-events:none;}
+  .cell.miss{background:linear-gradient(160deg,#ff7a85,var(--ng)); box-shadow:0 5px 0 #a8202e; animation:shake .35s;}
+  @keyframes shake{0%,100%{translate:0;}20%{translate:-7px;}40%{translate:7px;}60%{translate:-5px;}80%{translate:5px;}}
+  .bar{height:6px; background:var(--panel); border-radius:3px; overflow:hidden; margin-top:14px;}
+  .bar div{height:100%; width:0; background:linear-gradient(90deg,var(--tile1),var(--ok)); transition:width .15s;}
 
-  .count{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(31,58,104,.85);
-         color:#fff; font-size:120px; font-weight:800; z-index:10;}
+  /* カウントダウン */
+  .count{position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:10;
+         background:rgba(13,20,36,.75); font-size:140px; font-weight:800; color:var(--accent);}
   .count.on{display:flex;}
+  .count span{animation:zoom .7s ease-out;}
+  @keyframes zoom{0%{transform:scale(1.8); opacity:0;}30%{opacity:1;}100%{transform:scale(1);}}
 
-  .result-time{font-size:56px; font-weight:800; color:var(--navy); font-variant-numeric:tabular-nums; line-height:1;}
-  .result-detail{font-size:16px; color:var(--sub); line-height:1.7;}
+  /* やめる確認 */
+  .modal{position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:20;
+         background:rgba(0,0,0,.6); padding:16px;}
+  .modal.on{display:flex;}
+  .dialog{background:#1e2c4c; border-radius:20px; padding:24px 20px 20px; width:100%; max-width:320px; text-align:center;
+          box-shadow:0 10px 30px rgba(0,0,0,.5);}
+  .dialog p{margin:0 0 6px; font-size:18px; font-weight:700;}
+  .dialog .note{font-size:13px; color:var(--sub); font-weight:400; margin-bottom:18px;}
+  .dialog .row{display:flex; gap:10px;}
+  .dialog button{flex:1; border:none; border-radius:12px; padding:13px 0; font-size:16px; font-weight:700; cursor:pointer;}
+  .yes{background:var(--ng); color:#fff;}
+  .no{background:rgba(255,255,255,.12); color:#fff;}
+
+  /* ===== 結果 ===== */
+  .res-wrap{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; text-align:center;}
+  .clear{font-size:30px; font-weight:800; letter-spacing:.2em; color:var(--ok);}
+  .res-time{font-size:72px; font-weight:700; line-height:1;}
+  .res-time small{font-size:26px; color:var(--sub);}
+  .res-sub{color:var(--sub); font-size:15px;}
   .newbest{color:var(--accent); font-size:22px; font-weight:800; animation:pop .6s;}
   @keyframes pop{0%{transform:scale(.4);opacity:0;}70%{transform:scale(1.15);}100%{transform:scale(1);opacity:1;}}
-  .answer{display:grid; grid-template-columns:repeat(4,1fr); gap:4px; font-size:13px; background:var(--card);
-          border-radius:12px; padding:10px; width:100%; box-shadow:0 1px 3px rgba(0,0,0,.08);}
-  .answer span{text-align:center; white-space:nowrap;}
-  .answer small{color:var(--sub);}
+  .answer{display:grid; grid-template-columns:repeat(4,1fr); gap:6px 4px; width:100%; background:var(--panel);
+          border-radius:16px; padding:12px 8px; font-size:12px;}
+  .answer span{white-space:nowrap; color:var(--sub);}
+  .answer b{display:block; color:#fff; font-size:17px; font-family:"Helvetica Neue",Arial,sans-serif;}
+  .btns{display:flex; gap:10px; width:100%; margin-top:4px;}
+  .btn{flex:1; border:none; border-radius:14px; padding:15px 0; font-size:18px; font-weight:800; cursor:pointer;}
+  .btn.main{background:var(--accent); color:#3a2600; box-shadow:0 5px 0 var(--accentShadow);}
+  .btn.main:active{transform:translateY(4px); box-shadow:0 1px 0 var(--accentShadow);}
+  .btn.sub{background:rgba(255,255,255,.12); color:#fff;}
 </style>
 </head>
 <body>
 <div class="app">
-  <header><h1>元素記号タッチ</h1></header>
 
-  <!-- スタート画面 -->
+  <!-- タイトル -->
   <section class="screen on" id="start">
-    <div class="center">
-      <div class="rule">
-        <b>原子番号1〜20</b>の元素記号が<br>バラバラに並んでいます。<br>
-        <b>H → He → Li → …</b> の順に<br>できるだけ速くタッチしよう！<br>
-        まちがえると <b style="color:var(--ng)">＋1秒</b> のペナルティ。
+    <div class="title-wrap">
+      <div class="logo" aria-hidden="true">
+        <span>H</span><span>He</span><span class="off">.</span>
+        <span class="off">.</span><span>Li</span><span>Be</span>
       </div>
-      <div class="best" id="bestStart"></div>
-      <button class="btn" id="startBtn">スタート</button>
+      <h1>元素記号タッチ</h1>
+      <p class="catch">ATOMIC NUMBER 1 – 20</p>
+      <div class="rule">
+        <b>H → He → Li → …</b> と<br>原子番号の順にタッチしよう！<br>
+        まちがえると <span class="ng">＋1秒</span>
+      </div>
+      <div>
+        <div class="best-lbl">BEST</div>
+        <div class="best-val num" id="bestStart">--.--</div>
+      </div>
+      <button class="start" id="startBtn">START</button>
     </div>
   </section>
 
-  <!-- ゲーム画面 -->
+  <!-- ゲーム -->
   <section class="screen" id="game">
-    <div class="status">
-      <div class="box next"><div class="label">次は原子番号</div><div class="val" id="next">1</div></div>
-      <div class="box"><div class="label">タイム</div><div class="val" id="time">0.00</div></div>
-      <div class="box"><div class="label">ミス</div><div class="val" id="miss">0</div></div>
+    <div class="topbar">
+      <button class="quit" id="quitBtn">✕ やめる</button>
+      <div class="miss-chip">ミス <b class="num" id="miss">0</b></div>
     </div>
-    <div class="progress"><div id="bar"></div></div>
+    <div class="timer num"><span id="time">0.00</span><small>秒</small></div>
+    <div class="next"><span>次は原子番号<b class="num" id="next">1</b></span></div>
     <div class="grid" id="grid"></div>
-    <div class="pen" id="pen"></div>
+    <div class="bar"><div id="bar"></div></div>
   </section>
 
-  <!-- 結果画面 -->
+  <!-- 結果 -->
   <section class="screen" id="result">
-    <div class="center">
-      <div style="font-size:24px; font-weight:700;">クリア！</div>
-      <div class="result-time" id="rTime"></div>
-      <div class="result-detail" id="rDetail"></div>
+    <div class="res-wrap">
+      <div class="clear">CLEAR!</div>
+      <div class="res-time num"><span id="rTime"></span><small> 秒</small></div>
+      <div class="res-sub" id="rDetail"></div>
       <div class="newbest" id="rNew" hidden>★ 自己ベスト更新！ ★</div>
-      <div class="best" id="bestResult"></div>
+      <div class="res-sub">BEST <b class="num" id="bestResult" style="color:#fff">--.--</b></div>
       <div class="answer" id="answer"></div>
-      <button class="btn" id="retryBtn">もう一度</button>
-      <button class="btn sub" id="topBtn">タイトルへ</button>
+      <div class="btns">
+        <button class="btn sub" id="topBtn">タイトルへ</button>
+        <button class="btn main" id="retryBtn">もう一度</button>
+      </div>
     </div>
   </section>
 </div>
 
-<div class="count" id="count">3</div>
+<div class="pen" id="pen">＋1秒</div>
+<div class="count" id="count"></div>
+<div class="modal" id="modal">
+  <div class="dialog">
+    <p>ゲームをやめますか？</p>
+    <div class="note">タイトルに戻ります。記録は残りません。</div>
+    <div class="row">
+      <button class="no" id="noBtn">つづける</button>
+      <button class="yes" id="yesBtn">やめる</button>
+    </div>
+  </div>
+</div>
 
 <script>
 const EL = [
@@ -132,18 +193,13 @@ const PENALTY = 1.0; // 秒
 const KEY = "genso-touch-best";
 
 const $ = id => document.getElementById(id);
-let next, misses, t0, timer, playing = false;
+let next, misses, t0, timer, countIv, playing = false;
 
 function getBest(){ try{ const v = parseFloat(localStorage.getItem(KEY)); return isNaN(v) ? null : v; }catch(e){ return null; } }
 function setBest(v){ try{ localStorage.setItem(KEY, String(v)); }catch(e){} }
 function fmt(s){ return s.toFixed(2); }
-function showBest(el){
-  const b = getBest();
-  el.innerHTML = b == null ? "自己ベスト：まだ記録なし" : "自己ベスト：<strong>" + fmt(b) + "</strong> 秒";
-}
-function show(id){
-  document.querySelectorAll(".screen").forEach(s => s.classList.toggle("on", s.id === id));
-}
+function showBest(el){ const b = getBest(); el.textContent = b == null ? "--.--" : fmt(b); }
+function show(id){ document.querySelectorAll(".screen").forEach(s => s.classList.toggle("on", s.id === id)); }
 function shuffle(a){
   for(let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
   return a;
@@ -156,7 +212,8 @@ function buildGrid(){
   shuffle(EL.map((e, i) => i + 1)).forEach(z => {
     const b = document.createElement("button");
     b.className = "cell";
-    b.innerHTML = '<span class="no">' + z + '</span>' + EL[z - 1][0];
+    b.dataset.z = z;
+    b.textContent = EL[z - 1][0];
     b.addEventListener("pointerdown", ev => { ev.preventDefault(); tap(b, z); });
     g.appendChild(b);
   });
@@ -165,8 +222,7 @@ function buildGrid(){
 function tap(b, z){
   if(!playing || b.classList.contains("done")) return;
   if(z === next){
-    b.classList.add("done", "flash");
-    setTimeout(() => b.classList.remove("flash"), 300);
+    b.classList.add("done");
     $("bar").style.width = (next / 20 * 100) + "%";
     next++;
     if(next > 20){ finish(); return; }
@@ -175,51 +231,61 @@ function tap(b, z){
     misses++;
     $("miss").textContent = misses;
     b.classList.remove("miss"); void b.offsetWidth; b.classList.add("miss");
-    setTimeout(() => b.classList.remove("miss"), 350);
-    $("pen").textContent = "＋1秒！";
-    clearTimeout(tap.pt); tap.pt = setTimeout(() => $("pen").textContent = "", 700);
+    clearTimeout(b.mt); b.mt = setTimeout(() => b.classList.remove("miss"), 350);
+    const p = $("pen"); p.classList.remove("show"); void p.offsetWidth; p.classList.add("show");
     if(navigator.vibrate) navigator.vibrate(80);
   }
 }
 
+function stopAll(){
+  playing = false;
+  clearInterval(timer); clearInterval(countIv);
+  $("count").classList.remove("on");
+}
+
 function startGame(){
+  stopAll();
   next = 1; misses = 0;
   $("next").textContent = "1"; $("miss").textContent = "0"; $("time").textContent = "0.00";
-  $("bar").style.width = "0"; $("pen").textContent = "";
+  $("bar").style.width = "0";
   buildGrid();
   show("game");
-  // カウントダウン
   const c = $("count"); let n = 3;
-  c.textContent = n; c.classList.add("on");
-  const iv = setInterval(() => {
+  const put = () => c.innerHTML = "<span>" + n + "</span>";
+  put(); c.classList.add("on");
+  countIv = setInterval(() => {
     n--;
-    if(n > 0){ c.textContent = n; return; }
-    clearInterval(iv);
+    if(n > 0){ put(); return; }
+    clearInterval(countIv);
     c.classList.remove("on");
     t0 = performance.now(); playing = true;
-    timer = setInterval(() => $("time").textContent = fmt(elapsed()), 50);
+    timer = setInterval(() => $("time").textContent = fmt(elapsed()), 30);
   }, 700);
 }
 
 function finish(){
-  playing = false;
-  clearInterval(timer);
+  stopAll();
   const t = elapsed();
   $("time").textContent = fmt(t);
   const old = getBest();
   const isNew = old == null || t < old;
   if(isNew) setBest(t);
-  $("rTime").innerHTML = fmt(t) + '<span style="font-size:24px"> 秒</span>';
-  $("rDetail").textContent = "ミス " + misses + " 回（ペナルティ ＋" + (misses * PENALTY).toFixed(0) + " 秒）";
+  $("rTime").textContent = fmt(t);
+  $("rDetail").textContent = "ミス " + misses + " 回（＋" + (misses * PENALTY).toFixed(0) + " 秒）";
   $("rNew").hidden = !isNew;
   showBest($("bestResult"));
-  $("answer").innerHTML = EL.map((e, i) => "<span><small>" + (i + 1) + "</small><br><b>" + e[0] + "</b><br><small>" + e[1] + "</small></span>").join("");
-  setTimeout(() => show("result"), 400);
+  $("answer").innerHTML = EL.map((e, i) => "<span>" + (i + 1) + "<b>" + e[0] + "</b>" + e[1] + "</span>").join("");
+  setTimeout(() => show("result"), 350);
 }
+
+function toTitle(){ stopAll(); showBest($("bestStart")); show("start"); }
 
 $("startBtn").addEventListener("click", startGame);
 $("retryBtn").addEventListener("click", startGame);
-$("topBtn").addEventListener("click", () => { showBest($("bestStart")); show("start"); });
+$("topBtn").addEventListener("click", toTitle);
+$("quitBtn").addEventListener("click", () => $("modal").classList.add("on"));
+$("noBtn").addEventListener("click", () => $("modal").classList.remove("on"));
+$("yesBtn").addEventListener("click", () => { $("modal").classList.remove("on"); toTitle(); });
 showBest($("bestStart"));
 </script>
 </body>
