@@ -79,6 +79,8 @@
         font-size:clamp(28px, 9vw, 38px); font-weight:800; font-family:"Helvetica Neue",Arial,sans-serif;
         text-shadow:0 2px 0 rgba(0,0,0,.18); transition:transform .08s;}
   .cell:active{transform:translateY(3px); box-shadow:0 2px 0 var(--tileShadow);}
+  .grid.hidden .cell{color:transparent; text-shadow:none;
+        background:repeating-linear-gradient(45deg,#2a8cf0 0 8px,#2479d6 8px 16px);}
   .cell.done{background:rgba(255,255,255,.05); box-shadow:none; color:rgba(255,255,255,.18); text-shadow:none;
              transform:scale(.9); transition:transform .15s, background .15s; pointer-events:none;}
   .cell.miss{background:linear-gradient(160deg,#ff7a85,var(--ng)); box-shadow:0 5px 0 #a8202e; animation:shake .35s;}
@@ -264,6 +266,7 @@ function stopAll(){
   playing = false;
   clearInterval(timer); clearInterval(countIv);
   $("count").classList.remove("on");
+  $("grid").classList.remove("hidden");
 }
 
 function startGame(){
@@ -273,7 +276,9 @@ function startGame(){
   order = mode === "num" ? nums : shuffle(nums.slice());
   step = 0; misses = 0;
   $("nextLbl").textContent = MODES[mode].label;
-  $("next").textContent = "？"; // カウントダウン中は出さない（開始と同時に表示）
+  // カウントダウン中：原子番号モードはタイルを伏せる／元素名モードは問題を「？」にする
+  if(mode === "num"){ $("grid").classList.add("hidden"); showTarget(); }
+  else{ $("next").textContent = "？"; }
   $("miss").textContent = "0"; $("time").textContent = "0.00";
   $("bar").style.width = "0";
   buildGrid();
@@ -286,6 +291,7 @@ function startGame(){
     if(n > 0){ put(); return; }
     clearInterval(countIv);
     c.classList.remove("on");
+    $("grid").classList.remove("hidden");
     showTarget();
     t0 = performance.now(); playing = true;
     timer = setInterval(() => $("time").textContent = fmt(elapsed()), 30);
