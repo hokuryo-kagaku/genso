@@ -9,6 +9,7 @@
   :root{
     --bg1:#0d1424; --bg2:#1b2a4a; --text:#ffffff; --sub:#8fa0c0;
     --tile1:#3dd6f5; --tile2:#2a8cf0; --tileShadow:#1a5fb0;
+    --cell1:#ffd866; --cell2:#ffc83d; --cellShadow:#c98a12; --cellText:#4a2c00; /* タイル：山吹色 */
     --ok:#3ee08a; --ng:#ff4d5e; --accent:#ffc83d; --accentShadow:#c9921a;
     --panel:rgba(255,255,255,.07);
   }
@@ -31,8 +32,8 @@
   .title-wrap{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:26px; text-align:center;}
   .logo{display:grid; grid-template-columns:repeat(3,52px); gap:6px;}
   .logo span{aspect-ratio:1; border-radius:10px; display:flex; align-items:center; justify-content:center;
-             font-weight:800; font-size:22px; background:linear-gradient(160deg,var(--tile1),var(--tile2));
-             box-shadow:0 4px 0 var(--tileShadow); font-family:"Helvetica Neue",Arial,sans-serif;}
+             font-weight:800; font-size:22px; background:linear-gradient(160deg,var(--cell1),var(--cell2)); color:var(--cellText);
+             box-shadow:0 4px 0 var(--cellShadow); font-family:"Helvetica Neue",Arial,sans-serif;}
   .logo span.off{background:rgba(255,255,255,.08); box-shadow:none; color:transparent;}
   h1{margin:0; font-size:34px; letter-spacing:.12em; font-weight:800;}
   .catch{margin:-14px 0 0; color:var(--sub); font-size:14px; letter-spacing:.2em;}
@@ -75,13 +76,13 @@
 
   .grid{display:grid; grid-template-columns:repeat(4,1fr); gap:9px; margin:auto 0;}
   .cell{aspect-ratio:1; border:none; border-radius:14px; padding:0; cursor:pointer; position:relative;
-        background:linear-gradient(160deg,var(--tile1),var(--tile2)); color:#fff;
-        box-shadow:0 5px 0 var(--tileShadow);
+        background:linear-gradient(160deg,var(--cell1),var(--cell2)); color:var(--cellText);
+        box-shadow:0 5px 0 var(--cellShadow);
         font-size:clamp(28px, 9vw, 38px); font-weight:800; font-family:"Helvetica Neue",Arial,sans-serif;
-        text-shadow:0 2px 0 rgba(0,0,0,.18); transition:transform .08s;}
-  .cell:active{transform:translateY(3px); box-shadow:0 2px 0 var(--tileShadow);}
+        text-shadow:0 1px 0 rgba(255,255,255,.35); transition:transform .08s;}
+  .cell:active{transform:translateY(3px); box-shadow:0 2px 0 var(--cellShadow);}
   .grid.hidden .cell{color:transparent; text-shadow:none;
-        background:repeating-linear-gradient(45deg,#2a8cf0 0 8px,#2479d6 8px 16px);}
+        background:repeating-linear-gradient(45deg,#ffc83d 0 8px,#f0b52a 8px 16px);}
   .cell.done{background:rgba(255,255,255,.05); box-shadow:none; color:rgba(255,255,255,.18); text-shadow:none;
              transform:scale(.9); transition:transform .15s, background .15s; pointer-events:none;}
   .cell.miss{background:linear-gradient(160deg,#ff7a85,var(--ng)); box-shadow:0 5px 0 #a8202e; animation:shake .35s;}
